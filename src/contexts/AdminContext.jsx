@@ -80,12 +80,12 @@ export const AdminProvider = ({ children }) => {
 
     try {
       // Hardcoded bypass for easy access
-      if (username === 'admin' && password === 'admin') {
+      if (username === 'sakthi' && password === 'vel') {
         const sessionData = {
           authenticated: true,
           timestamp: new Date().getTime(),
           adminId: 'local-admin-123',
-          username: 'admin',
+          username: 'sakthi',
           email: 'admin@example.com',
           fullName: 'Administrator'
         };
