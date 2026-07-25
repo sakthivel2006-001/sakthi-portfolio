@@ -438,50 +438,39 @@ const AdminDashboard = ({ isOpen, onClose }) => {
     }
   };
 
-  // Handle send reply via Supabase Edge Function
+  // Handle send reply via default email client (mailto:)
   const handleSendReply = async (message) => {
     if (!replyText.trim()) return;
     
     setIsSendingReply(true);
     try {
-      if (!supabase) {
-        throw new Error('Supabase client is not initialized');
-      }
+      // 1. Open default email client with pre-filled data
+      const subject = encodeURIComponent(`Reply to your message: ${message.name}`);
+      const body = encodeURIComponent(`${replyText}\n\n---\nOriginal Message:\n${message.message}`);
+      window.location.href = `mailto:${message.email}?subject=${subject}&body=${body}`;
 
-      const { data, error } = await supabase.functions.invoke('send-reply', {
-        body: {
-          messageId: message.id,
-          to: message.email,
-          customerName: message.name,
-          message: replyText
-        }
-      });
-
-      if (error) {
-        console.error('Edge function error details:', error);
-        throw new Error(error.message || 'Failed to invoke edge function');
-      }
+      alert('Email client opened! Please send the email from your app.');
       
-      alert('Reply sent successfully!');
       setReplyingToId(null);
       setReplyText('');
       
-      // Update local state and localStorage for immediate feedback
+      // 2. Update local state for immediate feedback
       const updatedMessages = messages.map(msg => 
         msg.id === message.id ? { ...msg, status: 'replied' } : msg
       );
       setMessages(updatedMessages);
-      localStorage.setItem('portfolioMessages', JSON.stringify(updatedMessages));
       
-      // Update in Supabase database directly if applicable
-      await supabase
-        .from('contact_messages')
-        .update({ status: 'replied' })
-        .eq('id', message.id);
+      // 3. Update in Supabase database
+      if (supabase) {
+        await supabase
+          .from('contact_messages')
+          .update({ status: 'replied' })
+          .eq('id', message.id);
+      }
         
     } catch (error) {
       console.error('Error sending reply:', error);
-      alert(`Failed to send reply: ${error.message}`);
+      alert(`Failed to update message status: ${error.message}`);
     } finally {
       setIsSendingReply(false);
     }

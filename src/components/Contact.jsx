@@ -90,22 +90,21 @@ const Contact = () => {
 
     try {
       // Save message to Supabase
-      // Fallback: Save to localStorage for demo
-      const newMessage = {
-        id: Date.now(),
-        name: contactForm.name,
-        email: contactForm.email,
-        message: contactForm.message,
-        status: 'unread',
-        created_at: new Date().toISOString()
-      };
-      const existingMessages = JSON.parse(localStorage.getItem('portfolioMessages') || '[]');
-      localStorage.setItem('portfolioMessages', JSON.stringify([newMessage, ...existingMessages]));
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([{
+          name: contactForm.name,
+          email: contactForm.email,
+          message: contactForm.message,
+          status: 'unread'
+        }]);
 
-      const data = [newMessage];
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
-      console.log('Message saved to database:', data);
-
+      console.log('Message saved to database successfully');
       alert('Message sent successfully! Thank you for contacting me. 📧');
       setContactForm({ name: '', email: '', message: '' });
 
@@ -141,24 +140,48 @@ const Contact = () => {
     setIsSubmittingComment(true);
 
     try {
-      // Save comment to Supabase
-      // Fallback: Save to localStorage for demo
-      const newComment = {
-        id: Date.now(),
-        name: commentForm.name,
-        message: commentForm.message,
-        photo_url: commentForm.photoPreview || null,
-        likes: 0,
-        created_at: new Date().toISOString()
-      };
-      const existingComments = JSON.parse(localStorage.getItem('portfolioComments') || '[]');
-      localStorage.setItem('portfolioComments', JSON.stringify([newComment, ...existingComments]));
+      let finalPhotoUrl = null;
 
-      const data = [newComment];
+      // 1. Upload photo to storage if provided
+      if (commentForm.photo) {
+        const fileExt = commentForm.photo.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `comment-avatars/${fileName}`;
 
-      console.log('Comment saved to database:', data);
+        const { error: uploadError } = await supabase.storage
+          .from('gallery-media')
+          .upload(filePath, commentForm.photo);
 
-      // Refresh comments list dari database
+        if (uploadError) {
+          console.error('Error uploading photo:', uploadError);
+          throw uploadError;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('gallery-media')
+          .getPublicUrl(filePath);
+
+        finalPhotoUrl = publicUrlData.publicUrl;
+      }
+
+      // 2. Save comment to Supabase
+      const { error } = await supabase
+        .from('comments')
+        .insert([{
+          name: commentForm.name,
+          message: commentForm.message,
+          photo_url: finalPhotoUrl,
+          approved: true // Set to true to make it public immediately
+        }]);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Comment saved to database successfully');
+
+      // Refresh comments list
       await fetchComments();
 
       // Reset form

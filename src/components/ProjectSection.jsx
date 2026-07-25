@@ -448,10 +448,10 @@ function ProjectSection() {
     { id: 'Tech Stack', label: 'Tech Stack', icon: <LiaLayerGroupSolid className="text-[1.5em] mb-1" /> },
   ];
 
-  // Use database projects if available, fallback to dummy data
-  const activeProjects = projectsFromDB.length > 0 ? projectsFromDB : dummyProjects;
+  // Merge database projects with dummy data
+  const activeProjects = [...projectsFromDB, ...dummyProjects];
 
-  console.log('🎯 Active projects source:', projectsFromDB.length > 0 ? 'DATABASE' : 'FALLBACK');
+  console.log('🎯 Active projects source:', projectsFromDB.length > 0 ? 'DATABASE + FALLBACK' : 'FALLBACK');
   console.log('📦 Total projects:', activeProjects.length);
 
   // Transform database projects to match UI format
@@ -466,7 +466,7 @@ function ProjectSection() {
         link: p.demo_url || p.github_url || '#', // Use demo_url as primary link
         github: p.github_url, // Add specific github field
         image: p.image_url,
-        category: 'Database', // All DB projects in one category
+        category: 'Web/Apps', // Fallback category so it shows in the tab
         featured: p.featured || false
       };
     }
@@ -476,20 +476,18 @@ function ProjectSection() {
 
   console.log('🔄 Transformed projects:', transformedProjects.length);
 
-  // Filter projects by category (only applies to static dummy data)
+  // Filter projects by category (now applies to both since we set DB category to Web/Apps)
   const filteredProjects = transformedProjects.filter((p) => {
-    // If from database (has category 'Database'), show all
-    if (p.category === 'Database') return true;
-    // For dummy data, filter by selected category
     return p.category === projectCategory;
   });
 
   console.log('✨ Filtered projects to display:', filteredProjects.length);
 
-  // Use database certificates if available, fallback to static data
-  const activeCertificates = certificatesFromDB.length > 0 ? certificatesFromDB : userCertificates;
+  // Merge database certificates with static data
+  const activeCertificates = [...certificatesFromDB, ...userCertificates];
 
   // === CHANGE START: Handler untuk tombol Show More/Less ===
+
   const handleShowMore = () => {
     setVisibleCertificatesCount(activeCertificates.length);
   };
