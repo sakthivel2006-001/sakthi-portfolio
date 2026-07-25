@@ -438,36 +438,51 @@ const AdminDashboard = ({ isOpen, onClose }) => {
     }
   };
 
-  // Handle send reply via default email client (mailto:)
+  // Handle send reply through WhatsApp or phone
   const handleSendReply = async (message) => {
     if (!replyText.trim()) return;
-    
+
     setIsSendingReply(true);
     try {
-      // 1. Open default email client with pre-filled data
-      const subject = encodeURIComponent(`Reply to your message: ${message.name}`);
-      const body = encodeURIComponent(`${replyText}\n\n---\nOriginal Message:\n${message.message}`);
-      window.location.href = `mailto:${message.email}?subject=${subject}&body=${body}`;
+      const contactValue = message.mobile_number || message.mobile || message.phone || message.contact_number || message.email || '';
+      const cleanedContact = String(contactValue).trim();
+      const digitsOnly = cleanedContact.replace(/\D/g, '');
 
-      alert('Email client opened! Please send the email from your app.');
-      
+      if (digitsOnly.length >= 10) {
+        const normalizedNumber = digitsOnly.startsWith('91') ? digitsOnly : `91${digitsOnly}`;
+        window.open(`https://wa.me/${normalizedNumber}`, '_blank', 'noopener,noreferrer');
+        alert('WhatsApp opened. Please send your reply there.');
+      } else if (cleanedContact.includes('@')) {
+        const subject = encodeURIComponent(`Reply to your message: ${message.name}`);
+        const body = encodeURIComponent(`${replyText}\n\n---\nOriginal Message:\n${message.message}`);
+        window.location.href = `mailto:${cleanedContact}?subject=${subject}&body=${body}`;
+        alert('Email client opened! Please send the email from your app.');
+      } else if (cleanedContact) {
+        window.location.href = `tel:${cleanedContact}`;
+        alert('Phone dialer opened. Please call the contact directly.');
+      } else {
+        alert('No contact number found for this message.');
+        setIsSendingReply(false);
+        return;
+      }
+
       setReplyingToId(null);
       setReplyText('');
-      
-      // 2. Update local state for immediate feedback
-      const updatedMessages = messages.map(msg => 
+
+      // Update local state for immediate feedback
+      const updatedMessages = messages.map(msg =>
         msg.id === message.id ? { ...msg, status: 'replied' } : msg
       );
       setMessages(updatedMessages);
-      
-      // 3. Update in Supabase database
+
+      // Update in Supabase database
       if (supabase) {
         await supabase
           .from('contact_messages')
           .update({ status: 'replied' })
           .eq('id', message.id);
       }
-        
+
     } catch (error) {
       console.error('Error sending reply:', error);
       alert(`Failed to update message status: ${error.message}`);
@@ -1324,7 +1339,9 @@ const AdminDashboard = ({ isOpen, onClose }) => {
                                 <span className="px-3 py-1 bg-cyan-600 text-white text-xs rounded-full">NEW</span>
                               )}
                             </div>
-                            <p className="text-slate-400 text-sm mb-2">{msg.email}</p>
+                            <p className="text-slate-400 text-sm mb-2">
+                              {msg.mobile_number || msg.mobile || msg.phone || msg.contact_number || msg.email || 'No contact number'}
+                            </p>
                             <p className="text-white mt-3">{msg.message}</p>
                             <p className="text-slate-500 text-xs mt-3">
                               {new Date(msg.created_at).toLocaleString()}
@@ -1346,7 +1363,7 @@ const AdminDashboard = ({ isOpen, onClose }) => {
                                 setReplyText('');
                               }}
                               className={`p-2 rounded-lg transition-colors duration-300 flex items-center justify-center ${replyingToId === msg.id ? 'bg-blue-800' : 'bg-blue-600 hover:bg-blue-500'}`}
-                              title="Reply directly via Email"
+                              title="Reply via WhatsApp / Phone"
                             >
                               <FaReply className="text-white" />
                             </button>

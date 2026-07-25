@@ -109,7 +109,7 @@ export const AdminProvider = ({ children }) => {
 
       if (error) {
         console.error('Login error:', error);
-        throw new Error('Terjadi kesalahan saat login. Silakan coba lagi.');
+        throw new Error('An error occurred while logging in. Please try again.');
       }
 
       // Check if login successful
@@ -165,7 +165,7 @@ export const AdminProvider = ({ children }) => {
       }
       
       console.error('Login error:', err);
-      throw new Error('Terjadi kesalahan saat login. Silakan coba lagi.');
+      throw new Error('An error occurred while logging in. Please try again.');
     }
   };
 

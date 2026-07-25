@@ -7,7 +7,7 @@ import { FaPaperPlane, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa
 const ContactFormDB = () => {
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    mobile: '',
     subject: '',
     message: '',
   });
@@ -31,14 +31,14 @@ const ContactFormDB = () => {
     try {
       const { error } = await supabase
         .from('contact_messages')
-        .insert([formData]);
+        .insert([{ ...formData, email: formData.mobile, message: `${formData.message}\n\nMobile Number: ${formData.mobile}` }]);
 
       if (error) throw error;
 
       setSuccess(true);
       setFormData({
         name: '',
-        email: '',
+        mobile: '',
         subject: '',
         message: '',
       });
@@ -89,19 +89,19 @@ const ContactFormDB = () => {
             />
           </div>
 
-          {/* Email */}
+          {/* Mobile */}
           <div>
-            <label htmlFor="email" className="block text-sm font-semibold text-slate-300 mb-2">
-              Email Address <span className="text-red-400">*</span>
+            <label htmlFor="mobile" className="block text-sm font-semibold text-slate-300 mb-2">
+              Mobile Number <span className="text-red-400">*</span>
             </label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="tel"
+              id="mobile"
+              name="mobile"
+              value={formData.mobile}
               onChange={handleChange}
               required
-              placeholder="john@example.com"
+              placeholder="+91 63795 57214"
               className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300"
             />
           </div>
@@ -201,8 +201,8 @@ const ContactFormDB = () => {
 
         <p className="text-center text-slate-500 text-sm mt-6">
           Or reach me directly at{' '}
-          <a href="mailto:your.email@example.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-            your.email@example.com
+          <a href="https://wa.me/916379557214" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+            +91 63795 57214
           </a>
         </p>
       </motion.div>

@@ -6,7 +6,7 @@ import {
   FaLinkedin,
   FaPaperPlane,
   FaUser,
-  FaEnvelope,
+  FaPhone,
   FaComment,
   FaCamera,
   FaHeart,
@@ -24,7 +24,7 @@ const Contact = () => {
   // States untuk contact form
   const [contactForm, setContactForm] = useState({
     name: '',
-    email: '',
+    mobile: '',
     message: ''
   });
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
@@ -94,8 +94,8 @@ const Contact = () => {
         .from('contact_messages')
         .insert([{
           name: contactForm.name,
-          email: contactForm.email,
-          message: contactForm.message,
+          email: contactForm.mobile,
+          message: `${contactForm.message}\n\nMobile Number: ${contactForm.mobile}`,
           status: 'unread'
         }]);
 
@@ -105,8 +105,8 @@ const Contact = () => {
       }
 
       console.log('Message saved to database successfully');
-      alert('Message sent successfully! Thank you for contacting me. 📧');
-      setContactForm({ name: '', email: '', message: '' });
+      alert('Message sent successfully! Thank you for contacting me. �');
+      setContactForm({ name: '', mobile: '', message: '' });
 
     } catch (error) {
       console.error('Error submitting contact form:', error);
@@ -343,12 +343,12 @@ const Contact = () => {
 
                   <div className="group">
                     <div className="relative">
-                      <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 dark:text-slate-400 text-slate-500 group-focus-within:text-cyan-400 transition-colors duration-300" />
+                      <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 dark:text-slate-400 text-slate-500 group-focus-within:text-cyan-400 transition-colors duration-300" />
                       <input
-                        type="email"
-                        placeholder="Your Email"
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                        type="tel"
+                        placeholder="Your Mobile Number"
+                        value={contactForm.mobile}
+                        onChange={(e) => setContactForm(prev => ({ ...prev, mobile: e.target.value }))}
                         className="w-full pl-12 pr-4 py-4 dark:bg-slate-800/50 bg-slate-50 border dark:border-slate-600/50 border-slate-200 rounded-xl dark:text-white text-slate-900 dark:placeholder-slate-400 placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300"
                         required
                       />
